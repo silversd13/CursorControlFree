@@ -1,30 +1,24 @@
-function [Neuro,Data,Params] = ExperimentPause(Params,Neuro,Data)
+function [Neuro,Params,done] = ExperimentPause(Params,Neuro)
 % Display text then wait for subject to resume experiment
 
 global Cursor
+done = 0;
 
 % Pause Screen
 tex = 'Paused... Press ''p'' to continue, ''escape'' to quit, or ''d'' to debug';
 DrawFormattedText(Params.WPTR, tex,'center','center',255);
 Screen('Flip', Params.WPTR);
 
-% add event to data structure
-Data.Events(end+1).Time = GetSecs;
-Data.Events(end).Str  = 'Pause';
-if Params.SerialSync, fprintf(Params.SerialPtr, '%s\n', 'P0'); end
-if Params.ArduinoSync, PulseArduino(Params.ArduinoPtr,Params.ArduinoPin,length(Data.Events)); end
-
 KbCheck;
 WaitSecs(.1);
 while 1, % pause until subject presses p again or quits
     [~, ~, keyCode, ~] = KbCheck;
     if keyCode(KbName('p'))==1,
-        keyCode(KbName('p'))=0; % set to 0 to avoid multiple pauses in a row
-        fprintf('\b') % remove input keys
         break;
     end
     if keyCode(KbName('escape'))==1 || keyCode(KbName('q'))==1,
-        ExperimentStop(1); % quit experiment
+        done=1; % quit experiment
+        break;
     end
     if keyCode(KbName('d'))==1,
         keyboard; % quit experiment
@@ -36,21 +30,12 @@ while 1, % pause until subject presses p again or quits
         Cursor.LastUpdateTime = tim;
         Cursor.LastPredictTime = tim;
         if Params.BLACKROCK,
-            [Neuro,Data] = NeuroPipeline(Neuro,Data);
-            Data.NeuralTime(1,end+1) = tim;
+            Neuro = NeuroPipeline(Neuro);
         elseif Params.GenNeuralFeaturesFlag,
             Neuro.NeuralFeatures = VelToNeuralFeatures(Params);
-            Data.NeuralFeatures{end+1} = Neuro.NeuralFeatures;
-            Data.NeuralTime(1,end+1) = tim;
         end
     end
 end
-
-% add event to data structure
-Data.Events(end+1).Time = GetSecs;
-Data.Events(end).Str  = 'EndPause';
-if Params.SerialSync, fprintf(Params.SerialPtr, '%s\n', 'PF'); end
-if Params.ArduinoSync, PulseArduino(Params.ArduinoPtr,Params.ArduinoPin,length(Data.Events)); end
 
 Screen('Flip', Params.WPTR);
 WaitSecs(.1);

@@ -14,7 +14,6 @@ function KF = FitKF(Params,datadir,fitFlag,KF,TrialBatch,dimRedFunc)
 % Initialization of KF
 if ~exist('KF','var'),
     KF = Params.KF;
-    KF.Lambda = Params.CLDA.Lambda;
 end
 
 % If Initialization Mode = 3, manually choose datadir & fit KF
@@ -46,7 +45,6 @@ end
 % not fit
 if KF.InitializationMode==4 && fitFlag==0,
     f=load(fullfile(Params.ProjectDir,'TaskCode','persistence','kf_params.mat'));
-    KF.Lambda = Params.CLDA.Lambda;
     KF.R = f.KF.R;
     KF.S = f.KF.S;
     KF.T = f.KF.T;
@@ -60,14 +58,6 @@ end
 
 % grab data trial data
 datafiles = dir(fullfile(datadir,'Data*.mat'));
-if fitFlag==2, % if smooth batch, only use files TrialBatch
-    names = {datafiles.name};
-    idx = zeros(1,length(names))==1;
-    for i=1:length(TrialBatch),
-        idx = idx | strcmp(names,TrialBatch{i});
-    end
-    datafiles = datafiles(idx);
-end
 
 Tfull = [];
 Xfull = [];
@@ -117,8 +107,8 @@ end
 
 % fit kalman matrices
 if KF.VelKF, % only use vel to fit C, set pos terms to 0
-    C = (Y*X(3:end,:)') / (X(3:end,:)*X(3:end,:)');
-    C = [zeros(size(C,1),2),C];
+    C = (Y*X(2:end,:)') / (X(2:end,:)*X(2:end,:)');
+    C = [zeros(size(C,1),1),C];
 else,
     C = (Y*X') / (X*X');
 end
@@ -129,7 +119,7 @@ switch fitFlag,
     case {0,1},
         % fit sufficient stats
         if KF.VelKF, % only use vel to fit C, set pos terms to 0
-            X = X(3:end,:);
+            X = X(2:end,:);
         end
         KF.R = X*X';
         KF.S = Y*X';
@@ -139,14 +129,6 @@ switch fitFlag,
         KF.Q = Q;
         KF.Tinv = inv(KF.T);
         KF.Qinv = inv(Q);
-    case 2, % smooth batch
-        try
-        alpha = Params.CLDA.Alpha;
-        KF.C = alpha*KF.C + (1-alpha)*C;
-        KF.Q = alpha*KF.Q + (1-alpha)*Q;
-        KF.Qinv = inv(KF.Q);
-        catch
-        end
 end
 
 end % FitKF

@@ -61,7 +61,6 @@ end
 Neuro.ZscoreRawFlag     = Params.ZscoreRawFlag;
 Neuro.ZscoreFeaturesFlag= Params.ZscoreFeaturesFlag;
 Neuro.DimRed            = Params.DimRed;
-Neuro.CLDA              = Params.CLDA;
 Neuro.SaveProcessed     = Params.SaveProcessed;
 Neuro.SaveRaw           = Params.SaveRaw;
 Neuro.FilterBank        = Params.FilterBank;
@@ -103,15 +102,12 @@ Neuro.FilterDataBuf = zeros(Neuro.BufferSamps,Neuro.NumChannels,Neuro.NumBuffer)
 %% Kalman Filter
 if Params.ControlMode>=3,
     KF = Params.KF;
-    KF.CLDA = Params.CLDA;
-    KF.Lambda = Params.CLDA.Lambda;
 else,
     KF = [];
 end
 
 %% Check Important Params with User
 LogicalStr = {'off', 'on'};
-IMStr = {'imagined mvmts', 'shuffled imagined mvmts', 'prev mvmts', 'prev adapted'};
 DimRedStr = {'PCA', 'FA'};
 
 fprintf('\n\nImportant Experimental Parameters:')
@@ -141,17 +137,6 @@ if Params.DimRed.Flag,
     fprintf('\n      - before fixed: %s', LogicalStr{Params.DimRed.InitFixed+1})
 end
 
-fprintf('\n\n  BCI Parameters:')
-fprintf('\n    - Imagined Movements: %s', LogicalStr{double(Params.NumImaginedBlocks>0) +1})
-fprintf('\n      - initialization mode: %s', IMStr{Params.InitializationMode})
-fprintf('\n    - Adaptation Decoding: %s', LogicalStr{double(Params.NumAdaptBlocks>0) +1})
-if Params.NumAdaptBlocks>0,
-    fprintf('\n      - adapt type: %s', Params.CLDA.TypeStr)
-    fprintf('\n      - adapt change type: %s', Params.CLDA.AdaptType)
-end
-fprintf('\n    - Fixed Decoding: %s', LogicalStr{double(Params.NumFixedBlocks>0) +1})
-
-
 str = input('\n\nContinue? (''n'' to quit, otherwise continue)\n' ,'s');
 if strcmpi(str,'n'),
     fprintf('\n\nExperiment Ended\n\n')
@@ -173,48 +158,16 @@ Screen('TextSize',Params.WPTR, 28);
 
 %% Start
 try
-    % Baseline 
-    if Params.BaselineTime>0,
-        % turn on update stats flags
-        Neuro.UpdateChStatsFlag = true;
-        Neuro.UpdateFeatureStatsFlag = true;
-        
-        % collect data during baseline period
-        Neuro = RunBaseline(Params,Neuro);
-        
-        % set flags back to original vals
-        Neuro.UpdateChStatsFlag = Params.UpdateChStatsFlag;
-        Neuro.UpdateFeatureStatsFlag = Params.UpdateFeatureStatsFlag;
-        
-        % save of useful stats and params
-        ch_stats = Neuro.ChStats;
-        save(fullfile(Params.ProjectDir,'TaskCode','persistence','ch_stats.mat'),...
-            'ch_stats','-v7.3','-nocompression');
-        feature_stats = Neuro.FeatureStats;
-        save(fullfile(Params.ProjectDir,'TaskCode','persistence','feature_stats.mat'),...
-            'feature_stats','-v7.3','-nocompression');
-    else, % if baseline is set to 0, just load stats
-        f=load(fullfile(Params.ProjectDir,'TaskCode','persistence','ch_stats.mat'));
-        Neuro.ChStats = f.ch_stats;
-        f=load(fullfile(Params.ProjectDir,'TaskCode','persistence','feature_stats.mat'));
-        Neuro.FeatureStats = f.feature_stats;
-        clear('f');
-    end
     
-    % Imagined Cursor Movements Loop
-    if Params.NumImaginedBlocks>0,
-        [Neuro,KF,Params] = RunTask(Params,Neuro,1,KF);
-    end
+    % Load Stats for z-scoring
+    f=load(fullfile(Params.ProjectDir,'TaskCode','persistence','ch_stats.mat'));
+    Neuro.ChStats = f.ch_stats;
+    f=load(fullfile(Params.ProjectDir,'TaskCode','persistence','feature_stats.mat'));
+    Neuro.FeatureStats = f.feature_stats;
+    clear('f');
     
-    % Adaptation Loop
-    if Params.NumAdaptBlocks>0,
-        [Neuro,KF,Params] = RunTask(Params,Neuro,2,KF);
-    end
-    
-    % Fixed Decoder Loop
-    if Params.NumFixedBlocks>0,
-        [Neuro,KF,Params] = RunTask(Params,Neuro,3,KF);
-    end
+    % Run Task
+    [Neuro,KF,Params] = RunTask(Params,Neuro,KF);
     
     % Pause and Finish!
     ExperimentStop();

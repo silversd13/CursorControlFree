@@ -8,7 +8,7 @@ function Params = GetParams(Params)
 Params.Verbose = true;
 
 %% Experiment
-Params.Task = 'Center-Out';
+Params.Task = 'CursorControlFree';
 switch Params.ControlMode,
     case 1, Params.ControlModeStr = 'MousePosition';
     case 2, Params.ControlModeStr = 'MouseVelocity';
@@ -18,12 +18,8 @@ end
 
 %% Control
 Params.Gain             = 1;
-Params.CenterReset      = true;
-Params.Assistance       = 0.05; %0.05; % value btw 0 and 1, 1 full assist
-Params.CLDA.Type        = 3; % 0-none, 1-refit, 2-smooth batch, 3-RML
-Params.CLDA.AdaptType   = 'linear'; % {'none','linear'}, affects assistance & lambda for rml
 Params.InitializationMode = 4; % 1-imagined mvmts, 2-shuffled imagined mvmts, 3-choose dir, 4-most recent KF
-Params.BaselineTime     = 0; % secs
+Params.MvmtAxisAngle    = -45;
 
 %% Current Date and Time
 % get today's date
@@ -40,11 +36,11 @@ if strcmpi(Params.Subject,'Test'),
 end
 
 if IsWin,
-    projectdir = 'C:\Users\ganguly-lab2\Documents\MATLAB\Center-Out';
+    projectdir = 'C:\Users\ganguly-lab2\Documents\MATLAB\CursorControlFree';
 elseif IsOSX,
-    projectdir = '/Users/daniel/Projects/Center-Out/';
+    projectdir = '/Users/daniel/Projects/CursorControlFree/';
 else,
-    projectdir = '~/Projects/Center-Out/';
+    projectdir = '~/Projects/CursorControlFree/';
     butter(1,[.1,.5]);
 end
 addpath(genpath(fullfile(projectdir,'TaskCode')));
@@ -66,23 +62,6 @@ Params.ArduinoSync = false;
 Params.ScreenRefreshRate = 10; % Hz
 Params.UpdateRate = 10; % Hz
 
-%% Targets
-Params.TargetSize = 50;
-Params.OutTargetColor = [55,255,0];
-Params.InTargetColor = [255,55,0];
-
-Params.StartTargetPosition  = [0,0];
-Params.TargetRect = ...
-    [-Params.TargetSize -Params.TargetSize +Params.TargetSize +Params.TargetSize];
-
-Params.ReachTargetAngles = (0:45:315)';
-Params.ReachTargetRadius = 250;
-Params.ReachTargetPositions = ...
-    Params.StartTargetPosition ...
-    + Params.ReachTargetRadius ...
-    * [cosd(Params.ReachTargetAngles) sind(Params.ReachTargetAngles)];
-Params.NumReachTargets = length(Params.ReachTargetAngles);
-
 %% Cursor
 Params.CursorColor = [0,102,255];
 Params.CursorSize = 15;
@@ -93,18 +72,14 @@ Params.CursorRect = [-Params.CursorSize -Params.CursorSize ...
 dt = 1/Params.UpdateRate;
 if Params.ControlMode>=3,
     Params.KF.A = [...
-        1       0       dt      0       0;
-        0       1       0       dt      0;
-        0       0       .8      0       0;
-        0       0       0       .8      0;
-        0       0       0       0       1];
+        1       dt      0;
+        0       .8      0;
+        0       0       1];
     Params.KF.W = [...
-        0       0       0       0       0;
-        0       0       0       0       0;
-        0       0       1000   0       0;
-        0       0       0       1000   0;
-        0       0       0       0       0];
-    Params.KF.P = eye(5);
+        0       0       0;
+        0       500     0;
+        0       0       0];
+    Params.KF.P = eye(3);
     Params.KF.InitializationMode = Params.InitializationMode; % 1-imagined mvmts, 2-shuffled
     if Params.ControlMode==4, % set velocity kalman filter flag
         Params.KF.VelKF = true;
@@ -116,72 +91,6 @@ end
 %% Velocity Command Online Feedback
 Params.DrawVelCommand.Flag = true;
 Params.DrawVelCommand.Rect = [-425,-425,-350,-350];
-
-%% Trial and Block Types
-Params.NumImaginedBlocks    = 0;
-Params.NumAdaptBlocks       = 2;
-Params.NumFixedBlocks       = 0;
-Params.NumTrialsPerBlock    = length(Params.ReachTargetAngles);
-Params.TargetSelectionFlag  = 1; % 1-pseudorandom, 2-random
-switch Params.TargetSelectionFlag,
-    case 1, Params.TargetFunc = @(n) mod(randperm(n),Params.NumReachTargets)+1;
-    case 2, Params.TargetFunc = @(n) mod(randi(n,1,n),Params.NumReachTargets)+1;
-end
-
-%% CLDA Parameters
-TypeStrs                = {'none','refit','smooth_batch','rml'};
-Params.CLDA.TypeStr     = TypeStrs{Params.CLDA.Type+1};
-
-Params.CLDA.UpdateTime = 80; % secs, for smooth batch
-Params.CLDA.Alpha = exp(log(.5) / (120/Params.CLDA.UpdateTime)); % for smooth batch
-
-% Lambda
-Params.CLDA.Lambda = 80; %exp(log(.5) / (30*Params.UpdateRate)); % for RML
-FinalLambda = 800; %exp(log(.5) / (500*Params.UpdateRate));
-DeltaLambda = (FinalLambda - Params.CLDA.Lambda) ...
-    / ((Params.NumAdaptBlocks-1)...
-    *Params.NumTrialsPerBlock...
-    *Params.UpdateRate * 5); % bins/trial;
-
-Params.CLDA.DeltaLambda = DeltaLambda; % for RML
-Params.CLDA.FinalLambda = FinalLambda; % for RML
-
-switch Params.CLDA.AdaptType,
-    case 'none',
-        Params.CLDA.DeltaLambda = 0;  
-        Params.CLDA.DeltaAssistance = 0;
-    case 'linear',
-        switch Params.CLDA.Type,
-            case 2, % smooth batch
-                Params.CLDA.DeltaAssistance = ... % linearly decrease assistance
-                    Params.Assistance...
-                    /(Params.NumAdaptBlocks*Params.NumTrialsPerBlock*5/Params.CLDA.UpdateTime);
-            case 3, % RML
-                Params.CLDA.DeltaAssistance = ... % linearly decrease assistance
-                    Params.Assistance...
-                    /((Params.NumAdaptBlocks-1)*Params.NumTrialsPerBlock);
-            otherwise, % none or refit
-                Params.CLDA.DeltaAssistance = 0;
-        end
-end
-
-%% Hold Times
-Params.TargetHoldTime = .1;
-Params.InterTrialInterval = 3;
-Params.InstructedDelayTime = 0;
-Params.MaxStartTime = 15;
-Params.MaxReachTime = 15;
-Params.InterBlockInterval = 10; % 0-10s, if set to 10 use instruction screen
-Params.ImaginedMvmtTime = 2;
-
-%% Feedback
-Params.FeedbackSound = false;
-Params.ErrorWaitTime = 2;
-Params.ErrorSound = 1000*audioread('buzz.wav');
-Params.ErrorSoundFs = 8192;
-[Params.RewardSound,Params.RewardSoundFs] = audioread('reward1.wav');
-% play sounds silently once so Matlab gets used to it
-sound(0*Params.ErrorSound,Params.ErrorSoundFs)
 
 %% BlackRock Params
 Params.GenNeuralFeaturesFlag = true;
