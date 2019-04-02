@@ -34,7 +34,6 @@ switch Cursor.ControlMode,
         X = Cursor.State;
         Vcom = (X(1) - X0(1))*Params.UpdateRate; % effective velocity command
         Cursor.IntendedState = Cursor.State; % current true position
-        Cursor.IntendedState(2) = Vopt; % update vel w/ optimal vel
         
     case 2, % Use Mouse Position as a Velocity Input (Center-Joystick)
         X0 = Cursor.State;
@@ -60,7 +59,6 @@ switch Cursor.ControlMode,
         X = Cursor.State;
         Vcom = (X(1) - X0(1))*Params.UpdateRate; % effective velocity command
         Cursor.IntendedState = Cursor.State; % current true position
-        Cursor.IntendedState(2) = Vopt; % update vel w/ optimal vel
         
     case {3,4}, % Kalman Filter Input
         X0 = Cursor.State; % initial state, useful for assistance
@@ -111,6 +109,9 @@ try,
 catch,
     Cursor.Vcommand = 0;
 end
+
+% write to arduino to exo
+VelocityArduino(Params.ArduinoPtr,Params.VelArduinoPins, Cursor.Vcommand);
 
 % bound cursor position to size of screen
 pos = Cursor.State(1);

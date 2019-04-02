@@ -53,6 +53,10 @@ if Params.ArduinoSync,
     Params.ArduinoPin = 'D13';
     writeDigitalPin(Params.ArduinoPtr, Params.ArduinoPin, 0); % make sure the pin is at 0
     PulseArduino(Params.ArduinoPtr,Params.ArduinoPin,20);
+    
+    Params.VelArduinoPins = {
+        'D2','D3','D4','D5','D6','D7','D8','D9','D10'};
+    VelocityArduino(Params.ArduinoPtr,Params.VelArduinoPins);
 end
 
 %% Neural Signal Processing

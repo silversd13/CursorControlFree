@@ -9,6 +9,9 @@ tex = 'Paused... Press ''p'' to continue, ''escape'' to quit, or ''d'' to debug'
 DrawFormattedText(Params.WPTR, tex,'center','center',255);
 Screen('Flip', Params.WPTR);
 
+% set velocity on exo to 0
+VelocityArduino(Params.ArduinoPtr,Params.VelArduinoPins,0);
+
 KbCheck;
 WaitSecs(.1);
 while 1, % pause until subject presses p again or quits

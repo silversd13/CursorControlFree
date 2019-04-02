@@ -7,6 +7,9 @@ Screen('CloseAll');
 % Close Serial Port
 fclose('all');
 
+% set velocity on exo to 0
+VelocityArduino(Params.ArduinoPtr,Params.VelArduinoPins,0);
+
 % quit
 fprintf('Ending Experiment\n')
 if fromPause, keyboard; end

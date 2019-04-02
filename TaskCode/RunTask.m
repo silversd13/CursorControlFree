@@ -12,11 +12,19 @@ Neuro.DimRed.Flag = Params.DimRed.Flag; % reset for task
 if Params.DimRed.Flag && Params.DimRed.InitAdapt,
     Neuro.DimRed.F = FitDimRed(...
         fullfile(Params.Datadir),Neuro.DimRed);
-    KF = FitKF(Params,...
-        fullfile(Params.Datadir),0,KF,[],Neuro.DimRed.F);
+    if Cursor.ControlMode>3,
+        KF = FitKF(Params,...
+            fullfile(Params.Datadir),0,KF,[],Neuro.DimRed.F);
+    else,
+        KF = [];
+    end
 else, % no dim reduction
-    KF = FitKF(Params,...
-        fullfile(Params.Datadir),0,KF);
+    if Cursor.ControlMode>3,
+        KF = FitKF(Params,...
+            fullfile(Params.Datadir),0,KF);
+    else,
+        KF = [];
+    end
 end
 
 switch Params.ControlMode,

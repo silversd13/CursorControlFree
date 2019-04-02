@@ -56,7 +56,7 @@ Params.SerialSync = false;
 Params.SyncDev = '/dev/ttyS1';
 Params.BaudRate = 115200;
 
-Params.ArduinoSync = false;
+Params.ArduinoSync = true;
 
 %% Timing
 Params.ScreenRefreshRate = 10; % Hz
