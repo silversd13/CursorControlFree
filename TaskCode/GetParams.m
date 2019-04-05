@@ -19,7 +19,7 @@ end
 %% Control
 Params.Gain             = 1;
 Params.InitializationMode = 4; % 1-imagined mvmts, 2-shuffled imagined mvmts, 3-choose dir, 4-most recent KF
-Params.MvmtAxisAngle    = -45;
+Params.MvmtAxisAngle    = 0;
 
 %% Current Date and Time
 % get today's date
@@ -77,7 +77,7 @@ if Params.ControlMode>=3,
         0       0       1];
     Params.KF.W = [...
         0       0       0;
-        0       500     0;
+        0       750     0;
         0       0       0];
     Params.KF.P = eye(3);
     Params.KF.InitializationMode = Params.InitializationMode; % 1-imagined mvmts, 2-shuffled
@@ -93,7 +93,7 @@ Params.DrawVelCommand.Flag = true;
 Params.DrawVelCommand.Rect = [-425,-425,-350,-350];
 
 %% BlackRock Params
-Params.GenNeuralFeaturesFlag = true;
+Params.GenNeuralFeaturesFlag = false;
 Params.ZscoreRawFlag = true;
 Params.UpdateChStatsFlag = false;
 Params.ZscoreFeaturesFlag = true;
@@ -126,98 +126,98 @@ Params.FilterBank = [];
 Params.FilterBank(end+1).fpass = [.5,4];    % delta
 Params.FilterBank(end).buffer_flag = true;
 Params.FilterBank(end).hilbert_flag = true;
-Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 1;
+Params.FilterBank(end).phase_flag = true;
+Params.FilterBank(end).feature = 2;
 
 Params.FilterBank(end+1).fpass = [4,8];     % theta
 Params.FilterBank(end).buffer_flag = true;
 Params.FilterBank(end).hilbert_flag = true;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 1;
+Params.FilterBank(end).feature = 3;
 
 Params.FilterBank(end+1).fpass = [8,13];    % alpha
 Params.FilterBank(end).buffer_flag = true;
 Params.FilterBank(end).hilbert_flag = true;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 1;
+Params.FilterBank(end).feature = 4;
 
-% Params.FilterBank(end+1).fpass = [13,19];   % beta1
-% Params.FilterBank(end).buffer_flag = false;
-% Params.FilterBank(end).hilbert_flag = false;
-% Params.FilterBank(end).phase_flag = false;
-% Params.FilterBank(end).feature = 2;
+Params.FilterBank(end+1).fpass = [13,19];   % beta1
+Params.FilterBank(end).buffer_flag = false;
+Params.FilterBank(end).hilbert_flag = false;
+Params.FilterBank(end).phase_flag = false;
+Params.FilterBank(end).feature = 5;
 
-% Params.FilterBank(end+1).fpass = [19,30];   % beta2
-% Params.FilterBank(end).buffer_flag = false;
-% Params.FilterBank(end).hilbert_flag = false;
-% Params.FilterBank(end).phase_flag = false;
-% Params.FilterBank(end).feature = 2;
+Params.FilterBank(end+1).fpass = [19,30];   % beta2
+Params.FilterBank(end).buffer_flag = false;
+Params.FilterBank(end).hilbert_flag = false;
+Params.FilterBank(end).phase_flag = false;
+Params.FilterBank(end).feature = 5;
 
-% Params.FilterBank(end+1).fpass = [30,36];   % low gamma1 
-% Params.FilterBank(end).buffer_flag = false;
-% Params.FilterBank(end).hilbert_flag = false;
-% Params.FilterBank(end).phase_flag = false;
-% Params.FilterBank(end).feature = 2;
-% 
-% Params.FilterBank(end+1).fpass = [36,42];   % low gamma2 
-% Params.FilterBank(end).buffer_flag = false;
-% Params.FilterBank(end).hilbert_flag = false;
-% Params.FilterBank(end).phase_flag = false;
-% Params.FilterBank(end).feature = 2;
-% 
-% Params.FilterBank(end+1).fpass = [42,50];   % low gamma3
-% Params.FilterBank(end).buffer_flag = false;
-% Params.FilterBank(end).hilbert_flag = false;
-% Params.FilterBank(end).phase_flag = false;
-% Params.FilterBank(end).feature = 2;
+Params.FilterBank(end+1).fpass = [30,36];   % low gamma1 
+Params.FilterBank(end).buffer_flag = false;
+Params.FilterBank(end).hilbert_flag = false;
+Params.FilterBank(end).phase_flag = false;
+Params.FilterBank(end).feature = 6;
+
+Params.FilterBank(end+1).fpass = [36,42];   % low gamma2 
+Params.FilterBank(end).buffer_flag = false;
+Params.FilterBank(end).hilbert_flag = false;
+Params.FilterBank(end).phase_flag = false;
+Params.FilterBank(end).feature = 6;
+
+Params.FilterBank(end+1).fpass = [42,50];   % low gamma3
+Params.FilterBank(end).buffer_flag = false;
+Params.FilterBank(end).hilbert_flag = false;
+Params.FilterBank(end).phase_flag = false;
+Params.FilterBank(end).feature = 6;
 
 Params.FilterBank(end+1).fpass = [70,77];   % high gamma1
 Params.FilterBank(end).buffer_flag = false;
 Params.FilterBank(end).hilbert_flag = false;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 2;
+Params.FilterBank(end).feature = 7;
 
 Params.FilterBank(end+1).fpass = [77,85];   % high gamma2
 Params.FilterBank(end).buffer_flag = false;
 Params.FilterBank(end).hilbert_flag = false;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 2;
+Params.FilterBank(end).feature = 7;
 
 Params.FilterBank(end+1).fpass = [85,93];   % high gamma3
 Params.FilterBank(end).buffer_flag = false;
 Params.FilterBank(end).hilbert_flag = false;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 2;
+Params.FilterBank(end).feature = 7;
 
 Params.FilterBank(end+1).fpass = [93,102];  % high gamma4
 Params.FilterBank(end).buffer_flag = false;
 Params.FilterBank(end).hilbert_flag = false;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 2;
+Params.FilterBank(end).feature = 7;
 
 Params.FilterBank(end+1).fpass = [102,113]; % high gamma5
 Params.FilterBank(end).buffer_flag = false;
 Params.FilterBank(end).hilbert_flag = false;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 2;
+Params.FilterBank(end).feature = 7;
 
 Params.FilterBank(end+1).fpass = [113,124]; % high gamma6
 Params.FilterBank(end).buffer_flag = false;
 Params.FilterBank(end).hilbert_flag = false;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 2;
+Params.FilterBank(end).feature = 7;
 
 Params.FilterBank(end+1).fpass = [124,136]; % high gamma7
 Params.FilterBank(end).buffer_flag = false;
 Params.FilterBank(end).hilbert_flag = false;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 2;
+Params.FilterBank(end).feature = 7;
 
 Params.FilterBank(end+1).fpass = [136,150]; % high gamma8
 Params.FilterBank(end).buffer_flag = false;
 Params.FilterBank(end).hilbert_flag = false;
 Params.FilterBank(end).phase_flag = false;
-Params.FilterBank(end).feature = 2;
+Params.FilterBank(end).feature = 7;
 
 % compute filter coefficients
 for i=1:length(Params.FilterBank),
