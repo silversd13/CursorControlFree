@@ -10,7 +10,7 @@ DrawFormattedText(Params.WPTR, tex,'center','center',255);
 Screen('Flip', Params.WPTR);
 
 % set velocity on exo to 0
-VelocityArduino(Params.ArduinoPtr,Params.VelArduinoPins,0);
+VelocityArduino(Params.ArduinoPtr,0);
 
 KbCheck;
 WaitSecs(.1);
