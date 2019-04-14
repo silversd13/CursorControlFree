@@ -111,7 +111,7 @@ catch,
 end
 
 % write to arduino to exo
-VelocityArduino(Params.ArduinoPtr,Params.VelArduinoPins, Cursor.Vcommand);
+VelocityArduino(Params.ArduinoVelPtr, Cursor.Vcommand);
 
 % bound cursor position to size of screen
 pos = Cursor.State(1);

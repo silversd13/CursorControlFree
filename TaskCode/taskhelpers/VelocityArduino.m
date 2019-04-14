@@ -1,4 +1,4 @@
-function VelocityArduino(ptr,pins,vel)
+function VelocityArduino(ptr,vel)
 % vel is 1D velocity signal ~(-100:+100)
 
 % reset digital pins
@@ -11,14 +11,10 @@ vel = max([vel,-100]);
 vel = min([vel,+100]);
 
 % remap vel to values btw 0 and 10^9
-x = (vel+100)/200*(2^9-1);
-bin_str = dec2bin(x,9);
+vel = round((vel+100)/200*(4095));
 
-% set digital pins
-for i=1:length(pins),
-    pin = pins{i};
-    bit = str2double(bin_str(i));
-    writeDigitalPin(ptr, pin, bit);
-end
+% write to arduino via i2c bus
+vel_int  = (typecast(uint16(vel), 'uint8'));
+write(ptr,[vel_int(2) , vel_int(1)],'uint8')
 
 end
